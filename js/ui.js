@@ -3,6 +3,11 @@
   var C = window.LAJU_CONFIG;
   var A = window.Laju.analysis;
   var GAUGE_LENGTH = 235.6;
+  var progressValue = 0;
+  var progressTarget = 0;
+  var progressCeiling = 0;
+  var progressFrame = 0;
+  var progressLastFrame = 0;
   function $(id) { return document.getElementById(id); }
   function esc(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
@@ -24,6 +29,23 @@
       minute: "2-digit"
     });
   }
+  function animateProgress(timestamp) {
+    var elapsed = progressLastFrame ? timestamp - progressLastFrame : 16;
+    progressLastFrame = timestamp;
+    var goal = progressValue < progressTarget ? progressTarget : progressCeiling;
+    var rate = progressValue < progressTarget ? 0.025 : 0.0025;
+    progressValue = Math.min(goal, progressValue + elapsed * rate);
+    $("progressFill").style.width = progressValue + "%";
+    $("progressPercent").textContent = Math.round(progressValue) + "%";
+    $("progressBar").setAttribute("aria-valuenow", Math.round(progressValue));
+
+    if (progressValue + 0.01 < progressCeiling) {
+      progressFrame = window.requestAnimationFrame(animateProgress);
+    } else {
+      progressFrame = 0;
+      progressLastFrame = 0;
+    }
+  }
 
   var UI = {
     renderLegend: function () {
@@ -42,13 +64,22 @@
       phase.textContent = text;
       phase.className = "phase" + (isError ? " err" : "");
     },
-    progress: function (label, percent) {
-      var current = parseFloat($("progressFill").style.width) || 0;
-      var value = Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : current;
+    progress: function (label, percent, ceiling) {
       $("progressLabel").textContent = label;
-      $("progressPercent").textContent = Math.round(value) + "%";
-      $("progressFill").style.width = value + "%";
+      if (!Number.isFinite(percent)) return;
+
+      var value = Math.max(0, Math.min(100, percent));
+      if (value === 0) {
+        if (progressFrame) window.cancelAnimationFrame(progressFrame);
+        progressFrame = 0;
+        progressLastFrame = 0;
+        progressValue = 0;
+        $("progressFill").style.width = "0%";
+      }
+      progressTarget = Math.max(progressValue, value);
+      progressCeiling = Math.max(progressTarget, Math.min(100, Number.isFinite(ceiling) ? ceiling : value));
       $("progressBar").setAttribute("aria-valuenow", Math.round(value));
+      if (!progressFrame) progressFrame = window.requestAnimationFrame(animateProgress);
     },
     metric: function (id, value) {
       $(id).textContent = value;
@@ -59,6 +90,7 @@
       });
       $("mPs").textContent = "–";
       $("verdict").innerHTML = "";
+      $("resultsReveal").classList.remove("is-visible");
       $("qualityPanel").hidden = true;
       $("recommendations").hidden = true;
       $("repeatSummary").hidden = true;
@@ -98,6 +130,7 @@
           '</td><td>' + esc(item.data.observed) + "</td></tr>";
       }).join("");
       $("recommendations").hidden = false;
+      $("resultsReveal").classList.add("is-visible");
     },
     network: function (ssid) {
       var n = navigator.connection || navigator.mozConnection || navigator.webkitConnection;

@@ -403,7 +403,7 @@ select option {
   height: 100%;
   border-radius: inherit;
   background: var(--acc);
-  transition: width .2s ease-out;
+  transition: none;
 }
 
 .test-progress small {
@@ -644,6 +644,25 @@ select option {
   margin-top: 14px;
 }
 
+.results-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  opacity: 0;
+  transition: grid-template-rows .32s ease, opacity .24s ease, margin-top .32s ease;
+}
+
+.results-reveal.is-visible {
+  grid-template-rows: 1fr;
+  margin-top: 2px;
+  opacity: 1;
+}
+
+.results-reveal-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .quality-panel[hidden],
 .recommendations[hidden] {
   display: none;
@@ -773,6 +792,12 @@ select option {
   margin: 8px 0 0;
   color: var(--mute);
   font-size: 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .results-reveal {
+    transition: none;
+  }
 }
 
 /* --------------------------------------------------------------------------

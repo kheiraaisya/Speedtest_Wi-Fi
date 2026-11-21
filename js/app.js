@@ -168,26 +168,31 @@
         button.textContent = repeatCount > 1 ? "Tes " + (trialIndex + 1) + "/" + repeatCount + "…" : "Mengukur…";
 
         UI.phase(trialLabel + "mengukur ping…");
-        UI.progress(trialLabel + "Ping", trialIndex / repeatCount * 100);
+        var pingStart = trialIndex / repeatCount * 100;
+        var nextPingMark = (trialIndex + 1 / C.pingCount / 3) / repeatCount * 100;
+        UI.progress(trialLabel + "Ping", pingStart, Math.max(pingStart, nextPingMark - 0.08));
         var ping = await ST.ping(function (ms, completed, total) {
           if (ms != null) UI.gauge(ms, null, "ms");
           var fraction = completed / total;
-          UI.progress(trialLabel + "Ping " + completed + "/" + total,
-            (trialIndex + fraction * 0.1) / repeatCount * 100);
+          var pingProgress = (trialIndex + fraction / 3) / repeatCount * 100;
+          var nextMark = completed < total
+            ? (trialIndex + (completed + 1) / total / 3) / repeatCount * 100 - 0.08
+            : pingProgress;
+          UI.progress(trialLabel + "Ping " + completed + "/" + total, pingProgress, Math.max(pingProgress, nextMark));
         });
 
         UI.phase(trialLabel + "mengukur unduh dan ping saat beban…");
-        UI.progress(trialLabel + "Unduh", (trialIndex + 0.1) / repeatCount * 100);
+        UI.progress(trialLabel + "Unduh", (trialIndex + 1 / 3) / repeatCount * 100);
         var download = await ST.download(function (value, fraction) {
           UI.gauge(value, "download", "Mbps");
-          UI.progress(trialLabel + "Unduh", (trialIndex + 0.1 + fraction * 0.45) / repeatCount * 100);
+          UI.progress(trialLabel + "Unduh", (trialIndex + (1 + fraction) / 3) / repeatCount * 100);
         });
 
         UI.phase(trialLabel + "mengukur unggah dan ping saat beban…");
-        UI.progress(trialLabel + "Unggah", (trialIndex + 0.55) / repeatCount * 100);
+        UI.progress(trialLabel + "Unggah", (trialIndex + 2 / 3) / repeatCount * 100);
         var upload = await ST.upload(function (value, fraction) {
           UI.gauge(value, "upload", "Mbps");
-          UI.progress(trialLabel + "Unggah", (trialIndex + 0.55 + fraction * 0.45) / repeatCount * 100);
+          UI.progress(trialLabel + "Unggah", (trialIndex + (2 + fraction) / 3) / repeatCount * 100);
         });
 
         var loadedSamples = download.loadedSamples.concat(upload.loadedSamples);

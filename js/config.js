@@ -20,8 +20,10 @@ window.LAJU_CONFIG = {
 
   // Pengukuran: jumlah sampel/durasi dalam detik/koneksi paralel.
   pingCount: 10,
-  downloadSec: 8,
-  uploadSec: 8,
+  slowPingCount: 5,
+  slowPingThresholdMs: 500,
+  downloadSec: 6,
+  uploadSec: 6,
   threads: 4,
   warmupSec: 1,
   loadedProbeIntervalMs: 500,

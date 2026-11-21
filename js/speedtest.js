@@ -33,7 +33,8 @@
   async function ping(onSample) {
     try { var w = await fetch(C.server.ping(), { cache: "no-store" }); if (!w.ok) throw new Error(); await w.arrayBuffer(); } catch (e) {} // pemanasan (DNS/TLS)
     var times = [], lost = 0;
-    for (var i = 0; i < C.pingCount; i++) {
+    var sampleCount = C.pingCount;
+    for (var i = 0; i < sampleCount; i++) {
       var t0 = performance.now();
       var sample = null;
       try {
@@ -44,13 +45,34 @@
         times.push(ms);
         sample = ms;
       } catch (e) { lost++; }
-      if (onSample) onSample(sample, i + 1, C.pingCount);
+      if (i === 2 && times.length) {
+        var initialSamples = times.slice().sort(function (a, b) { return a - b; });
+        var middle = Math.floor(initialSamples.length / 2);
+        var initialMedian = initialSamples.length % 2
+          ? initialSamples[middle]
+          : (initialSamples[middle - 1] + initialSamples[middle]) / 2;
+        if (initialMedian >= C.slowPingThresholdMs) {
+          sampleCount = Math.min(sampleCount, C.slowPingCount);
+        }
+      }
+      if (onSample) onSample(sample, i + 1, sampleCount);
       await sleep(80);
     }
     if (!times.length) throw new Error("Server tes tidak bisa dijangkau. Periksa koneksi internet.");
-    var avg = times.reduce(function (a, b) { return a + b; }, 0) / times.length, j = 0;
+    var sortedTimes = times.slice().sort(function (a, b) { return a - b; });
+    var middle = Math.floor(sortedTimes.length / 2);
+    var pingMedian = sortedTimes.length % 2
+      ? sortedTimes[middle]
+      : (sortedTimes[middle - 1] + sortedTimes[middle]) / 2;
+    var j = 0;
     for (var k = 1; k < times.length; k++) j += Math.abs(times[k] - times[k - 1]);
-    return { ping: avg, jitter: times.length > 1 ? j / (times.length - 1) : 0, loss: lost / C.pingCount * 100 };
+    return {
+      ping: pingMedian,
+      jitter: times.length > 1 ? j / (times.length - 1) : 0,
+      loss: lost / sampleCount * 100,
+      samples: times.length,
+      attempts: sampleCount
+    };
   }
 
   // Jalankan worker paralel selama `seconds`, laporkan kecepatan langsung tiap 200 ms.

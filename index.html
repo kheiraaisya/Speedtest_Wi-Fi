@@ -57,25 +57,29 @@
         <p>Ping mengukur latensi menuju server tes; jitter mengukur variasi ping. Loss adalah persentase sampel ping yang gagal. Ping saat beban dipakai untuk menilai kenaikan latensi ketika bandwidth digunakan penuh.</p>
       </details>
       <div class="verdict" id="verdict"><span class="sub">Hasil dan rekomendasi pemakaian muncul di sini setelah tes selesai.</span></div>
-      <section class="quality-panel" id="qualityPanel" hidden>
-        <div class="quality-score"><span>Skor kualitas</span><strong id="qualityScore">–</strong><small id="qualityLabel"></small></div>
-        <div class="bufferbloat-result"><span>Bufferbloat</span><strong id="bufferbloatGrade">–</strong><small id="bufferbloatText"></small></div>
-      </section>
-      <p class="repeat-summary" id="repeatSummary" hidden></p>
-      <details class="metric-help quality-help">
-        <summary>Bagaimana skor dan status dihitung?</summary>
-        <p>Skor gabungan 0–100 memakai bobot unduh 20%, unggah 10%, ping 20%, jitter 15%, loss 15%, dan bufferbloat 20%. Jika ping saat beban tidak tersedia, bobot faktor itu dibagi ulang ke faktor terukur. Bufferbloat dinilai dari kenaikan ping: A ≤5, B ≤20, C ≤50, D ≤100, E ≤200, F >200 ms. Status aktivitas adalah perkiraan berdasarkan kebutuhan umum, bukan jaminan layanan.</p>
-      </details>
-      <section class="recommendations" id="recommendations" hidden>
-        <h2>Rekomendasi pemakaian</h2>
-        <div class="table-scroll">
-          <table>
-            <thead><tr><th>Aktivitas</th><th>Status</th><th>Patokan</th><th>Hasil</th></tr></thead>
-            <tbody id="activityRows"></tbody>
-          </table>
+      <div class="results-reveal" id="resultsReveal">
+        <div class="results-reveal-inner">
+          <section class="quality-panel" id="qualityPanel" hidden>
+            <div class="quality-score"><span>Skor kualitas</span><strong id="qualityScore">–</strong><small id="qualityLabel"></small></div>
+            <div class="bufferbloat-result"><span>Bufferbloat</span><strong id="bufferbloatGrade">–</strong><small id="bufferbloatText"></small></div>
+          </section>
+          <p class="repeat-summary" id="repeatSummary" hidden></p>
+          <details class="metric-help quality-help">
+            <summary>Bagaimana skor dan status dihitung?</summary>
+            <p>Skor gabungan 0–100 memakai bobot unduh 20%, unggah 10%, ping 20%, jitter 15%, loss 15%, dan bufferbloat 20%. Jika ping saat beban tidak tersedia, bobot faktor itu dibagi ulang ke faktor terukur. Bufferbloat dinilai dari kenaikan ping: A ≤5, B ≤20, C ≤50, D ≤100, E ≤200, F >200 ms. Status aktivitas adalah perkiraan berdasarkan kebutuhan umum, bukan jaminan layanan.</p>
+          </details>
+          <section class="recommendations" id="recommendations" hidden>
+            <h2>Rekomendasi pemakaian</h2>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Aktivitas</th><th>Status</th><th>Patokan</th><th>Hasil</th></tr></thead>
+                <tbody id="activityRows"></tbody>
+              </table>
+            </div>
+            <p class="status-legend">✓ Nyaman · ⚠ Tetap bisa digunakan; peringatan menunjukkan kemungkinan lag, buffering, atau waktu unduh lebih lama—bukan berarti tidak bisa tersambung.</p>
+          </section>
         </div>
-        <p class="status-legend">✓ Nyaman · ⚠ Tetap bisa digunakan; peringatan menunjukkan kemungkinan lag, buffering, atau waktu unduh lebih lama—bukan berarti tidak bisa tersambung.</p>
-      </section>
+      </div>
     </main>
 
     <aside class="side">
