@@ -42,6 +42,14 @@
       phase.textContent = text;
       phase.className = "phase" + (isError ? " err" : "");
     },
+    progress: function (label, percent) {
+      var current = parseFloat($("progressFill").style.width) || 0;
+      var value = Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : current;
+      $("progressLabel").textContent = label;
+      $("progressPercent").textContent = Math.round(value) + "%";
+      $("progressFill").style.width = value + "%";
+      $("progressBar").setAttribute("aria-valuenow", Math.round(value));
+    },
     metric: function (id, value) {
       $(id).textContent = value;
     },

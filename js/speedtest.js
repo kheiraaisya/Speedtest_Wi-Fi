@@ -35,14 +35,16 @@
     var times = [], lost = 0;
     for (var i = 0; i < C.pingCount; i++) {
       var t0 = performance.now();
+      var sample = null;
       try {
         var r = await fetch(C.server.ping(), { cache: "no-store", signal: requestSignal(10000) });
         if (!r.ok) throw new Error("HTTP " + r.status);
         await r.arrayBuffer();
         var ms = performance.now() - t0;
         times.push(ms);
-        if (onSample) onSample(ms);
+        sample = ms;
       } catch (e) { lost++; }
+      if (onSample) onSample(sample, i + 1, C.pingCount);
       await sleep(80);
     }
     if (!times.length) throw new Error("Server tes tidak bisa dijangkau. Periksa koneksi internet.");
@@ -65,7 +67,11 @@
       while (samples.length > 1 && now - samples[0][0] > 1000) samples.shift();
       if (!warmed && now - t0 >= C.warmupSec * 1000) { warmed = true; wb = state.bytes; wt = now; }
       var dt = (now - samples[0][0]) / 1000;
-      if (onProgress && dt > 0) onProgress((state.bytes - samples[0][1]) * 8 / dt / 1e6);
+      if (onProgress && dt > 0) {
+        var rate = (state.bytes - samples[0][1]) * 8 / dt / 1e6;
+        var progress = Math.min((now - t0) / (seconds * 1000), 1);
+        onProgress(rate, progress);
+      }
     }
     var ended = performance.now(), finalBytes = state.bytes;
     ctl.abort();

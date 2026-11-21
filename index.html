@@ -32,6 +32,13 @@
         <div class="read"><div class="num" id="num">0</div><div class="unit" id="unit">Mbps</div></div>
       </div>
       <p class="phase" id="phase">Siap mengukur koneksi kamu</p>
+      <div class="test-progress" aria-live="polite">
+        <div class="progress-meta"><span id="progressLabel">Siap untuk mengukur</span><span id="progressPercent"></span></div>
+        <div class="progress-track" role="progressbar" id="progressBar" aria-label="Kemajuan tes" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="progressFill"></span>
+        </div>
+        <small>Tes memakai bandwidth, sehingga koneksi lain bisa melambat sementara.</small>
+      </div>
       <div class="leg" id="speedLegend" aria-label="Kategori kecepatan unduh"></div>
       <div class="test-controls">
         <button class="btn" id="go">Mulai tes</button>

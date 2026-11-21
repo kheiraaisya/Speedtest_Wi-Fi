@@ -9,6 +9,7 @@
   function $(id) { return document.getElementById(id); }
 
   var running = false;
+  var hasDisplayedResult = false;
   var locationInput = $("loc");
   var ssidInput = $("ssid");
   var serverSelect = $("serverSelect");
@@ -157,7 +158,8 @@
     serverSelect.disabled = true;
     $("serverSelectTrigger").disabled = true;
     button.textContent = repeatCount > 1 ? "Tes 1/3…" : "Mengukur…";
-    UI.resetMetrics();
+    UI.phase(repeatCount > 1 ? "Menyiapkan 3 tes berurutan…" : "Memulai pengukuran…");
+    UI.progress("Menyiapkan tes", 0);
 
     try {
       var trials = [];
@@ -166,18 +168,26 @@
         button.textContent = repeatCount > 1 ? "Tes " + (trialIndex + 1) + "/" + repeatCount + "…" : "Mengukur…";
 
         UI.phase(trialLabel + "mengukur ping…");
-        var ping = await ST.ping(function (ms) {
-          UI.gauge(ms, null, "ms");
+        UI.progress(trialLabel + "Ping", trialIndex / repeatCount * 100);
+        var ping = await ST.ping(function (ms, completed, total) {
+          if (ms != null) UI.gauge(ms, null, "ms");
+          var fraction = completed / total;
+          UI.progress(trialLabel + "Ping " + completed + "/" + total,
+            (trialIndex + fraction * 0.1) / repeatCount * 100);
         });
 
         UI.phase(trialLabel + "mengukur unduh dan ping saat beban…");
-        var download = await ST.download(function (value) {
+        UI.progress(trialLabel + "Unduh", (trialIndex + 0.1) / repeatCount * 100);
+        var download = await ST.download(function (value, fraction) {
           UI.gauge(value, "download", "Mbps");
+          UI.progress(trialLabel + "Unduh", (trialIndex + 0.1 + fraction * 0.45) / repeatCount * 100);
         });
 
         UI.phase(trialLabel + "mengukur unggah dan ping saat beban…");
-        var upload = await ST.upload(function (value) {
+        UI.progress(trialLabel + "Unggah", (trialIndex + 0.55) / repeatCount * 100);
+        var upload = await ST.upload(function (value, fraction) {
           UI.gauge(value, "upload", "Mbps");
+          UI.progress(trialLabel + "Unggah", (trialIndex + 0.55 + fraction * 0.45) / repeatCount * 100);
         });
 
         var loadedSamples = download.loadedSamples.concat(upload.loadedSamples);
@@ -212,11 +222,15 @@
 
       UI.gauge(result.download, "download", "Mbps unduh");
       UI.phase("Tes selesai");
+      UI.progress("Tes selesai", 100);
       UI.verdict(result);
       S.add(result);
       updateHistory();
+      hasDisplayedResult = true;
     } catch (error) {
-      UI.phase(error.message || "Tes gagal.", true);
+      var message = error.message || "Tes gagal.";
+      UI.progress("Tes terhenti", null);
+      UI.phase(message + (hasDisplayedResult ? " Hasil sebelumnya tetap ditampilkan." : ""), true);
     } finally {
       running = false;
       button.disabled = false;
