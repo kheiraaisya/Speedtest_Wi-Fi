@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laju – Speedtest WiFi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.8a10 10 0 0 1 13 0M9 16.5a5 5 0 0 1 6 0"/><circle cx="12" cy="20" r="1" fill="#fff"/></svg></i>Laju</div>
+    <div class="location-control">
+      <span>Lokasi tes</span>
+      <span class="location-picker" id="locationPicker">
+        <button class="picker-trigger" id="locTrigger" type="button" aria-haspopup="listbox" aria-controls="locMenu" aria-expanded="false">
+          <span id="locLabel">Kamar</span><i aria-hidden="true"></i>
+        </button>
+        <span class="picker-menu" id="locMenu" role="listbox" aria-labelledby="locTrigger" hidden></span>
+        <select id="loc" class="native-select-hidden" tabindex="-1" aria-hidden="true">
+          <option>Kamar</option><option>Kampus</option><option>Perpustakaan</option><option>Kafe</option><option>Lainnya</option>
+        </select>
+      </span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <main class="card" aria-live="polite">
+      <div class="gauge">
+        <svg viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50" stroke-dasharray="235.6 314.2"/><circle class="val" id="ring" cx="60" cy="60" r="50" stroke-dasharray="235.6 314.2" stroke-dashoffset="235.6"/></svg>
+        <div class="read"><div class="num" id="num">0</div><div class="unit" id="unit">Mbps</div></div>
+      </div>
+      <p class="phase" id="phase">Siap mengukur koneksi kamu</p>
+      <div class="leg" id="speedLegend" aria-label="Kategori kecepatan unduh"></div>
+      <div class="test-controls">
+        <button class="btn" id="go">Mulai tes</button>
+        <label class="repeat-toggle"><input id="repeatMode" type="checkbox"> Tes 3× berurutan (median & rentang)</label>
+      </div>
+
+      <div class="metrics">
+        <div class="m"><span>Unduh</span><b id="mD">–</b><small>Mbps</small></div>
+        <div class="m"><span>Unggah</span><b id="mU">–</b><small>Mbps</small></div>
+        <div class="m"><span>Ping</span><b id="mP">–</b><small>ms · loss <span id="mPs">–</span></small></div>
+        <div class="m"><span>Jitter</span><b id="mJ">–</b><small>ms</small></div>
+        <div class="m"><span>Ping saat beban</span><b id="mLP">–</b><small>ms</small></div>
+      </div>
+      <details class="metric-help">
+        <summary>Tentang metrik</summary>
+        <p>Ping mengukur latensi menuju server tes; jitter mengukur variasi ping. Loss adalah persentase sampel ping yang gagal. Ping saat beban dipakai untuk menilai kenaikan latensi ketika bandwidth digunakan penuh.</p>
+      </details>
+      <div class="verdict" id="verdict"><span class="sub">Hasil dan rekomendasi pemakaian muncul di sini setelah tes selesai.</span></div>
+      <section class="quality-panel" id="qualityPanel" hidden>
+        <div class="quality-score"><span>Skor kualitas</span><strong id="qualityScore">–</strong><small id="qualityLabel"></small></div>
+        <div class="bufferbloat-result"><span>Bufferbloat</span><strong id="bufferbloatGrade">–</strong><small id="bufferbloatText"></small></div>
+      </section>
+      <p class="repeat-summary" id="repeatSummary" hidden></p>
+      <details class="metric-help quality-help">
+        <summary>Bagaimana skor dan status dihitung?</summary>
+        <p>Skor gabungan 0–100 memakai bobot unduh 20%, unggah 10%, ping 20%, jitter 15%, loss 15%, dan bufferbloat 20%. Jika ping saat beban tidak tersedia, bobot faktor itu dibagi ulang ke faktor terukur. Bufferbloat dinilai dari kenaikan ping: A ≤5, B ≤20, C ≤50, D ≤100, E ≤200, F >200 ms. Status aktivitas adalah perkiraan berdasarkan kebutuhan umum, bukan jaminan layanan.</p>
+      </details>
+      <section class="recommendations" id="recommendations" hidden>
+        <h2>Rekomendasi pemakaian</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Aktivitas</th><th>Status</th><th>Patokan</th><th>Hasil</th></tr></thead>
+            <tbody id="activityRows"></tbody>
+          </table>
+        </div>
+        <p class="status-legend">✓ Nyaman · ⚠ Tetap bisa digunakan; peringatan menunjukkan kemungkinan lag, buffering, atau waktu unduh lebih lama—bukan berarti tidak bisa tersambung.</p>
+      </section>
+    </main>
+
+    <aside class="side">
+      <section class="card">
+        <h2>Jaringan saat ini</h2>
+        <div class="row"><span>Server tes</span><span class="location-picker" id="serverPicker">
+          <button class="picker-trigger" id="serverSelectTrigger" type="button" aria-haspopup="listbox" aria-controls="serverSelectMenu" aria-expanded="false"><span id="serverSelectLabel">Cloudflare (publik)</span><i aria-hidden="true"></i></button>
+          <span class="picker-menu" id="serverSelectMenu" role="listbox" aria-labelledby="serverSelectTrigger" hidden></span>
+          <select class="native-select-hidden" id="serverSelect" tabindex="-1" aria-hidden="true"><option value="cloudflare">Cloudflare (publik)</option><option value="local">Server lokal</option></select>
+        </span></div>
+        <div class="row"><span>Nama WiFi</span><input class="field" id="ssid" placeholder="Isi manual" maxlength="40" aria-label="Nama WiFi"></div>
+        <div class="row"><span>Status</span><span id="nStatus">–</span></div>
+        <div class="row"><span>Perkiraan browser</span><span id="nEst">–</span></div>
+        <div class="row"><span>Latensi browser</span><span id="nRtt">–</span></div>
+        <p class="sub" style="margin:10px 0 0">Browser tidak bisa membaca nama WiFi dan kekuatan sinyal, jadi nama diisi manual.</p>
+      </section>
+      <div class="tip" id="tip"></div>
+    </aside>
+  </div>
+
+  <section class="card hist">
+    <div class="history-heading">
+      <h2>Riwayat</h2>
+      <div class="history-filter">
+        <span>Lokasi</span>
+        <span class="location-picker" id="historyPicker">
+          <button class="picker-trigger" id="historyFilterTrigger" type="button" aria-haspopup="listbox" aria-controls="historyFilterMenu" aria-expanded="false">
+            <span id="historyFilterLabel">Semua lokasi</span><i aria-hidden="true"></i>
+          </button>
+          <span class="picker-menu" id="historyFilterMenu" role="listbox" aria-labelledby="historyFilterTrigger" hidden></span>
+          <select class="native-select-hidden" id="historyFilter" tabindex="-1" aria-hidden="true"><option value="">Semua lokasi</option></select>
+        </span>
+      </div>
+    </div>
+    <div id="chart"></div>
+    <ul class="list" id="list"></ul>
+    <div class="actions">
+      <button class="ghost" id="csv">Ekspor CSV</button>
+      <button class="ghost" id="clear">Hapus riwayat</button>
+    </div>
+  </section>
+  <dialog class="confirm-dialog" id="clearDialog" aria-labelledby="clearDialogTitle" aria-describedby="clearDialogDescription">
+    <h2 id="clearDialogTitle">Hapus semua riwayat?</h2>
+    <p id="clearDialogDescription">Riwayat tes yang tersimpan di browser ini akan dihapus dan tidak dapat dipulihkan.</p>
+    <div class="confirm-actions">
+      <button class="ghost" id="cancelClear" type="button">Batal</button>
+      <button class="danger" id="confirmClear" type="button">Hapus riwayat</button>
+    </div>
+  </dialog>
+  <footer>
+    <p>© 2026 Kheira Aisya Dzikri. All Rights Reserved.</p>
+    </footer>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/speedtest.js"></script>
+<script src="js/analysis.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
