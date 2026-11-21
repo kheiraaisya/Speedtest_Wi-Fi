@@ -31,31 +31,55 @@
   }
 
   async function ping(onSample) {
-    try { var w = await fetch(C.server.ping(), { cache: "no-store" }); if (!w.ok) throw new Error(); await w.arrayBuffer(); } catch (e) {} // pemanasan (DNS/TLS)
+    try {
+      var warmup = await fetch(C.server.ping(), {
+        cache: "no-store",
+        signal: requestSignal(C.pingWarmupTimeoutMs)
+      });
+      if (!warmup.ok) throw new Error("HTTP " + warmup.status);
+      await warmup.arrayBuffer();
+    } catch (e) { /* Pemanasan opsional; jangan menahan tes jika server lambat. */ }
+
     var times = [], lost = 0;
+    var consecutiveFailures = 0;
     var sampleCount = C.pingCount;
     for (var i = 0; i < sampleCount; i++) {
       var t0 = performance.now();
       var sample = null;
       try {
-        var r = await fetch(C.server.ping(), { cache: "no-store", signal: requestSignal(10000) });
+        var r = await fetch(C.server.ping(), {
+          cache: "no-store",
+          signal: requestSignal(C.pingRequestTimeoutMs)
+        });
         if (!r.ok) throw new Error("HTTP " + r.status);
         await r.arrayBuffer();
         var ms = performance.now() - t0;
         times.push(ms);
         sample = ms;
-      } catch (e) { lost++; }
-      if (i === 2 && times.length) {
-        var initialSamples = times.slice().sort(function (a, b) { return a - b; });
-        var middle = Math.floor(initialSamples.length / 2);
-        var initialMedian = initialSamples.length % 2
-          ? initialSamples[middle]
-          : (initialSamples[middle - 1] + initialSamples[middle]) / 2;
-        if (initialMedian >= C.slowPingThresholdMs) {
+        consecutiveFailures = 0;
+      } catch (e) {
+        lost++;
+        consecutiveFailures++;
+      }
+      if (i === 2) {
+        if (!times.length) {
           sampleCount = Math.min(sampleCount, C.slowPingCount);
+        } else {
+          var initialSamples = times.slice().sort(function (a, b) { return a - b; });
+          var middle = Math.floor(initialSamples.length / 2);
+          var initialMedian = initialSamples.length % 2
+            ? initialSamples[middle]
+            : (initialSamples[middle - 1] + initialSamples[middle]) / 2;
+          if (initialMedian >= C.slowPingThresholdMs) {
+            sampleCount = Math.min(sampleCount, C.slowPingCount);
+          }
         }
       }
       if (onSample) onSample(sample, i + 1, sampleCount);
+      if (consecutiveFailures >= C.maxConsecutivePingFailures) {
+        throw new Error("Server tes " + C.server.name + " tidak merespons setelah " +
+          C.maxConsecutivePingFailures + " ping berturut-turut. Periksa koneksi atau pilih server lain.");
+      }
       await sleep(80);
     }
     if (!times.length) throw new Error("Server tes tidak bisa dijangkau. Periksa koneksi internet.");

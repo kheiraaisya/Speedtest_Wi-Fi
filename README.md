@@ -29,7 +29,7 @@ laju-web/
 Pengaturan utama dikelompokkan di `js/config.js`:
 
 - `servers`: pilihan Cloudflare atau server lokal; server lokal memerlukan aplikasi dijalankan melalui `server/server.py`.
-- `pingCount`, `slowPingCount`, `slowPingThresholdMs`, durasi tes, threads, dan warmup: parameter pengukuran.
+- `pingCount`, `slowPingCount`, `slowPingThresholdMs`, timeout ping, durasi tes, threads, dan warmup: parameter pengukuran.
 - `downloadCategories`: kategori dan warna kecepatan unduh; `max` adalah batas atas Mbps yang tidak termasuk kategori tersebut.
 - `limits`: patokan aktivitas seperti video call, game, dan streaming.
 - `limits.scoreWeights` dan `limits.activities`: bobot skor dan ambang status rekomendasi.

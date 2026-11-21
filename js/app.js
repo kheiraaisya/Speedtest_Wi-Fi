@@ -178,7 +178,8 @@
           var nextMark = completed < total
             ? (trialIndex + (completed + 1) / total / 3) / repeatCount * 100 - 0.08
             : pingProgress;
-          UI.progress(trialLabel + "Ping " + completed + "/" + total, pingProgress, Math.max(pingProgress, nextMark));
+          var pingLabel = trialLabel + "Ping " + completed + "/" + total + (ms == null ? " · timeout" : "");
+          UI.progress(pingLabel, pingProgress, Math.max(pingProgress, nextMark));
         });
 
         UI.phase(trialLabel + "mengukur unduh dan ping saat beban…");
